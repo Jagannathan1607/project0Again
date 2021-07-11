@@ -1,0 +1,73 @@
+try {
+			con = Factory.addConnection();
+			String f = "select amount,accountNo from accounts where accountNo = 1";
+			String t = "select amount,accountNo from accounts where accountNo = 2";
+			Statement state = con.createStatement();
+			ResultSet result = state.executeQuery(f);
+			int fromAmount = 0;
+			int fromAccountNo = 0;
+			while(result.next()) {
+				fromAmount = result.getInt(1);
+				fromAccountNo = result.getInt("accountNo");
+			}
+			result = state.executeQuery(t);
+			int toAmount = 0;
+			int toAccountNo = 0;
+			while(result.next()) {
+				toAmount = result.getInt("amount");
+				toAccountNo = result.getInt("accountNo");
+			}
+			
+//			String sql = "update accounts set amount = ";
+			System.out.println(fromAmount+ " " + fromAccountNo);
+			System.out.println(toAmount+ " " + toAccountNo);
+			int updatedFrom = fromAmount - amount;
+			int updatedTo = toAmount + amount;
+			String f1 = "update accounts set amount = ? where accountNo = 1;";
+			String t1 = "update accounts set amount = ? where accountNo = 2;";
+			PreparedStatement prep = con.prepareStatement(f1);
+			prep.setInt(1, updatedFrom);
+			PreparedStatement prep1 = con.prepareStatement(t1);
+			prep1.setInt(1, updatedTo);
+			int row = prep.executeUpdate();
+			int row2 = prep1.executeUpdate();
+			if(row > 0) {
+				System.out.println("updated " + row + " " + row2);
+				
+			}else {
+				System.out.println("not updated");
+			}
+			System.out.println(updatedFrom);
+			System.out.println(updatedTo);
+			Date date = new Date(System.currentTimeMillis());
+//			
+			System.out.println(date);
+			
+			TransactionHistory fromHistory = new TransactionHistory(fromAccountNo);
+			TransactionHistory toHistory = new TransactionHistory(toAccountNo);
+			fromHistory.setType("debit");
+			toHistory.setType("credit");
+			String history = "insert into history values (?,?,?,?)";
+			PreparedStatement historyState = con.prepareStatement(history);
+			historyState.setInt(1, fromHistory.getAccountNo());
+			historyState.setInt(2, amount);
+			historyState.setString(3,fromHistory.getType());
+			historyState.setDate(4, date);
+			historyState.execute();
+			historyState = con.prepareStatement(history);
+			historyState.setInt(1, toHistory.getAccountNo());
+			historyState.setInt(2, amount);
+			historyState.setString(3,toHistory.getType());
+			historyState.setDate(4, date);
+			historyState.execute();
+			} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}	
